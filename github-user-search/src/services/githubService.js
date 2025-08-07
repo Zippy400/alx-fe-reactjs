@@ -7,7 +7,7 @@ export const searchUsers = async ({ username, location, minRepos }) => {
   if (location) query += `location:${location} `;
   if (minRepos) query += `repos:>=${minRepos}`;
 
-  const response = await axios.get(`https://api.github.com/search/users`, {
+  const response = await axios.get(`https://api.github.com/search/users?q=${query.trim()}`, {
     params: { q: query.trim() },
   });
 
