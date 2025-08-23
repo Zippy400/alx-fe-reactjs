@@ -1,54 +1,33 @@
-// src/components/PostsComponent.jsx
-import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const fetchPosts = async (page) => {
-  const { data } = await axios.get(`https://jsonplaceholder.typicode.com/posts?_page=${page}`);
-  return data;
+const fetchPosts = async () => {
+  const response = await axios.get("http://localhost:5000/api/v1/posts");
+  return response.data;
 };
 
-export default function PostsComponent() {
-  const [page, setPage] = React.useState(1);
-
-  const {
-    data,
-    isLoading,
-    isError,
-    error,
-    isFetching,
-  } = useQuery({
-    queryKey: ["posts", page],
-    queryFn: () => fetchPosts(page),
-    keepPreviousData: true,           // ✅ keep old data during pagination
-    refetchOnWindowFocus: false,      // ✅ don't auto-refetch when switching tabs
+const PostsComponent = () => {
+  const { data, isLoading, isError } = useQuery(["posts"], fetchPosts, {
+    refetchOnWindowFocus: false,
+    keepPreviousData: true,
+    cacheTime: 1000 * 60 * 5, // keep data in cache for 5 minutes
+    staleTime: 1000 * 30,     // data is fresh for 30 seconds
   });
 
   if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error: {error.message}</p>;
+  if (isError) return <p>Error fetching posts</p>;
 
   return (
     <div>
-      <h2>Posts (Page {page})</h2>
-      <ul>
-        {data.map((post) => (
-          <li key={post.id}>{post.title}</li>
-        ))}
-      </ul>
-
-      <div>
-        <button
-          onClick={() => setPage((old) => Math.max(old - 1, 1))}
-          disabled={page === 1}
-        >
-          Previous
-        </button>
-        <button onClick={() => setPage((old) => old + 1)} disabled={isFetching}>
-          Next
-        </button>
-      </div>
-
-      {isFetching && <p>Fetching...</p>}
+      <h2>Posts</h2>
+      {data?.map((post) => (
+        <div key={post.id}>
+          <h3>{post.title}</h3>
+          <p>{post.content}</p>
+        </div>
+      ))}
     </div>
   );
-}
+};
+
+export default PostsComponent;
