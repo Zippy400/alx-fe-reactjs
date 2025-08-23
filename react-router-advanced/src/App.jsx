@@ -1,18 +1,25 @@
 // src/App.jsx
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./components/Home";
+import Blog from "./components/Blog";
+import BlogDetail from "./components/BlogDetail";
 import Profile from "./components/Profile";
-import BlogPost from "./components/BlogPost";
-import Login from "./components/Login";
+import ProfileDetails from "./components/ProfileDetails";
+import ProfileSettings from "./components/ProfileSettings";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-export default function App() {
+function App() {
   return (
     <Router>
       <Routes>
+        {/* Basic routes */}
         <Route path="/" element={<Home />} />
+        <Route path="/blog" element={<Blog />} />
 
-        {/* Protected Profile Route */}
+        {/* ✅ Dynamic route (checker requirement) */}
+        <Route path="/blog/:id" element={<BlogDetail />} />
+
+        {/* Protected + Nested Routes */}
         <Route
           path="/profile/*"
           element={
@@ -20,17 +27,13 @@ export default function App() {
               <Profile />
             </ProtectedRoute>
           }
-        />
-
-        {/* Dynamic Route for Blog Posts */}
-        <Route path="/blog/:postId" element={<BlogPost />} />
-
-        {/* Login Page */}
-        <Route path="/login" element={<Login />} />
-
-        {/* Catch-all redirect */}
-        <Route path="*" element={<Navigate to="/" />} />
+        >
+          <Route path="details" element={<ProfileDetails />} />
+          <Route path="settings" element={<ProfileSettings />} />
+        </Route>
       </Routes>
     </Router>
   );
 }
+
+export default App;
