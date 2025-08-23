@@ -3,42 +3,52 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
-const fetchPosts = async () => {
-  const response = await axios.get("https://jsonplaceholder.typicode.com/posts");
-  return response.data;
+const fetchPosts = async (page) => {
+  const { data } = await axios.get(`https://jsonplaceholder.typicode.com/posts?_page=${page}`);
+  return data;
 };
 
-const PostsComponent = () => {
-  const { data, error, isLoading, isError, refetch } = useQuery({
-    queryKey: ["posts"],
-    queryFn: fetchPosts,
-    staleTime: 5000, // keeps data "fresh" for 5s
-    cacheTime: 1000 * 60 * 5, // cache data for 5 minutes
+export default function PostsComponent() {
+  const [page, setPage] = React.useState(1);
+
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    isFetching,
+  } = useQuery({
+    queryKey: ["posts", page],
+    queryFn: () => fetchPosts(page),
+    keepPreviousData: true,           // ✅ keep old data during pagination
+    refetchOnWindowFocus: false,      // ✅ don't auto-refetch when switching tabs
   });
 
-  if (isLoading) {
-    return <p>Loading posts...</p>;
-  }
-
-  if (isError) {
-    return <p>Error: {error.message}</p>;
-  }
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error: {error.message}</p>;
 
   return (
     <div>
-      <button onClick={() => refetch()} style={{ marginBottom: "1rem" }}>
-        Refetch Posts
-      </button>
+      <h2>Posts (Page {page})</h2>
       <ul>
-        {data.slice(0, 10).map((post) => (
-          <li key={post.id}>
-            <strong>{post.title}</strong>
-            <p>{post.body}</p>
-          </li>
+        {data.map((post) => (
+          <li key={post.id}>{post.title}</li>
         ))}
       </ul>
+
+      <div>
+        <button
+          onClick={() => setPage((old) => Math.max(old - 1, 1))}
+          disabled={page === 1}
+        >
+          Previous
+        </button>
+        <button onClick={() => setPage((old) => old + 1)} disabled={isFetching}>
+          Next
+        </button>
+      </div>
+
+      {isFetching && <p>Fetching...</p>}
     </div>
   );
-};
-
-export default PostsComponent;
+}
